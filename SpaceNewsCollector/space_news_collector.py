@@ -64,7 +64,7 @@ def parse_sitemap_xml_and_fetch_news():
 	upload_file_to_s3()
 	os.remove(SPACE_NEWS_DATA_TEMP_FILE)
 
-def lambda_handler(event, context):
+def start_data_collection():
 	sitemap_xml = requests.get(SPACE_NEWS_SITEMAP, headers={'User-Agent': 'Mozilla/5.0'})
 	f = open(SPACE_NEWS_SITEMAP_TEMP_FILE, 'w')
 	f.write(sitemap_xml.content)
@@ -73,4 +73,4 @@ def lambda_handler(event, context):
 	os.remove(SPACE_NEWS_SITEMAP_TEMP_FILE)
 
 if __name__ == "__main__":
-	lambda_handler(None, None)
+	start_data_collection()
