@@ -4,6 +4,7 @@ import datetime
 import os
 import requests
 import sys
+import time
 
 SPACE_NEWS_SITEMAP = "http://www.space.com/sitemap.xml"
 SPACE_NEWS_SITEMAP_TEMP_FILE = "/tmp/space_sitemap.xml"
@@ -58,6 +59,7 @@ def parse_sitemap_xml_and_fetch_news():
 		count += 1
 		if count is ARTICLE_LIMIT:
 			break
+		time.sleep(5)
 	f.close()
 	upload_file_to_s3()
 	os.remove(SPACE_NEWS_DATA_TEMP_FILE)
