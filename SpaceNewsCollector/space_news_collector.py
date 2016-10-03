@@ -33,7 +33,7 @@ def parse_sitemap_xml_and_fetch_news():
 			article_data = BeautifulSoup(article_response.content, 'html.parser')
 
 			article_header_tag = article_data.find("h1", { "class" : "h1" })
-			article_header = article_header_tag.get_text().strip()
+			article_header = article_header_tag.get_text().strip().replace('\n', ' ').replace('\r', '')
 
 			article_content = article_data.find("div", 
 				{ "class" : "article-content" })
@@ -41,7 +41,7 @@ def parse_sitemap_xml_and_fetch_news():
 
 			for p in article_content.findAll('p'):
 				[s.extract() for s in p('script')]
-				article_text += p.get_text().strip() + " "
+				article_text += p.get_text().strip().replace('\n', ' ').replace('\r', '') + " "
 
 			f.write(url.loc.string)
 			f.write(DATA_ENTRY_DELIMITER)
@@ -54,12 +54,13 @@ def parse_sitemap_xml_and_fetch_news():
 			exception_count += 1
 			if exception_count > 20:
 				break
+			time.sleep(30)
 			continue
 
 		count += 1
 		if count is ARTICLE_LIMIT:
 			break
-		time.sleep(5)
+		time.sleep(30)
 	f.close()
 	upload_file_to_s3()
 	os.remove(SPACE_NEWS_DATA_TEMP_FILE)
