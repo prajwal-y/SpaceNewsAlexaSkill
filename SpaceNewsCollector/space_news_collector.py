@@ -13,7 +13,7 @@ SPACE_NEWS_DATA_S3_BUCKET = "space-news-data"
 
 DATA_ENTRY_DELIMITER = ":delim:"
 
-ARTICLE_LIMIT = 20
+ARTICLE_LIMIT = 10
 
 def upload_file_to_s3():
 	s3_client = boto3.client('s3')

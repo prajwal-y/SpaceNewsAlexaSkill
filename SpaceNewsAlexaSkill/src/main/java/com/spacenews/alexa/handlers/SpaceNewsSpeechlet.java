@@ -42,6 +42,7 @@ public class SpaceNewsSpeechlet implements Speechlet {
     private static final String NEXT_NEWS_INTENT = "GetNextNewsIntent";
     private static final String NEWS_DETAILS_INTENT = "GetNewsDetailsIntent";
     private static final String HELP_INTENT = "AMAZON.HelpIntent";
+    private static final String STOP_INTENT = "AMAZON.StopIntent";
 
     private final AmazonS3Client s3Client;
     private final List<Pair<String, String>> spaceNewsList;
@@ -82,6 +83,8 @@ public class SpaceNewsSpeechlet implements Speechlet {
             return getSpaceNewsContentResponse(session);
         } else if (HELP_INTENT.equals(intentName)) {
             return getHelpResponse();
+        } else if (STOP_INTENT.equals(intentName)) {
+            return createSpeechletResponse("Good bye. Have a nice day!", false);
         } else {
             throw new SpeechletException("Invalid Intent");
         }
@@ -128,26 +131,16 @@ public class SpaceNewsSpeechlet implements Speechlet {
 
     private SpeechletResponse getStartResponse() {
         String speechText = "Welcome to the Space News skill. " +
-                "You can use this to get the latest news from space dot com." +
+                "You can use this to get the latest news from space dot com. " +
                 "Just say give me space news";
-
-        SimpleCard card = new SimpleCard();
-        card.setTitle("SpaceNews");
-        card.setContent(speechText);
-
-        PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
-        speech.setText(speechText);
-
-        Reprompt reprompt = new Reprompt();
-        reprompt.setOutputSpeech(speech);
-
-        return SpeechletResponse.newAskResponse(speech, reprompt, card);
+        return createSpeechletResponse(speechText, true);
     }
 
     private SpeechletResponse getSpaceNewsResponse(final Intent intent, final Session session) {
         int newsIndex = 0;
         if (NEXT_NEWS_INTENT.equals(intent.getName())) {
-            newsIndex = (int) session.getAttribute(NEWS_INDEX);
+            newsIndex = (int) session.getAttribute(NEWS_INDEX) + 1;
+            session.setAttribute(NEWS_INDEX, newsIndex);
         }
         String speechText;
         if (newsIndex >= spaceNewsList.size()) {
@@ -156,10 +149,9 @@ public class SpaceNewsSpeechlet implements Speechlet {
                     "or say give me space news to start from the beginning again";
         } else {
             speechText = spaceNewsList.get(newsIndex).getLeft();
-            session.setAttribute(NEWS_INDEX, newsIndex + 1);
             speechText += ". You can now either say next news or say details, for more details";
         }
-        return createSpeechletResponse(speechText);
+        return createSpeechletResponse(speechText, true);
     }
 
     private SpeechletResponse getSpaceNewsContentResponse(final Session session) {
@@ -172,16 +164,16 @@ public class SpaceNewsSpeechlet implements Speechlet {
         } else {
             speechText = spaceNewsList.get(newsIndex).getRight();
         }
-        return createSpeechletResponse(speechText);
+        return createSpeechletResponse(speechText, true);
     }
 
     private SpeechletResponse getHelpResponse() {
         String speechText = "I can inform you about the latest news related to space and astronomy. " +
-                "Just say, Ask Alexa for space news";
-        return createSpeechletResponse(speechText);
+                "Just say, ask alexa for space news";
+        return createSpeechletResponse(speechText, true);
     }
 
-    private SpeechletResponse createSpeechletResponse(String speechText) {
+    private SpeechletResponse createSpeechletResponse(String speechText, boolean prompt) {
         SimpleCard card = new SimpleCard();
         card.setTitle("SpaceNewsCard");
         card.setContent(speechText);
@@ -189,9 +181,12 @@ public class SpaceNewsSpeechlet implements Speechlet {
         PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
         speech.setText(speechText);
 
-        Reprompt reprompt = new Reprompt();
-        reprompt.setOutputSpeech(speech);
-
-        return SpeechletResponse.newAskResponse(speech, reprompt, card);
+        if (prompt) {
+            Reprompt reprompt = new Reprompt();
+            reprompt.setOutputSpeech(speech);
+            return SpeechletResponse.newAskResponse(speech, reprompt, card);
+        } else {
+            return SpeechletResponse.newTellResponse(speech, card);
+        }
     }
 }
