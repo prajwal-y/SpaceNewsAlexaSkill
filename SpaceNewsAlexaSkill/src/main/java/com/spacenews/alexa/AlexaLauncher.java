@@ -1,4 +1,4 @@
-package com.prajwal.alexa;
+package com.spacenews.alexa;
 
 import org.apache.log4j.BasicConfigurator;
 import org.eclipse.jetty.server.Connector;
@@ -15,24 +15,17 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import com.amazon.speech.Sdk;
 import com.amazon.speech.speechlet.Speechlet;
 import com.amazon.speech.speechlet.servlet.SpeechletServlet;
-import com.prajwal.alexa.basictest.AlexaBasicTestSpeechlet;
+import com.spacenews.alexa.handlers.SpaceNewsSpeechlet;
 
 public class AlexaLauncher {
-    /**
-     * port number for the jetty server.
-     */
+
     private static final int PORT = 8888;
 
     private static final String HTTPS_SCHEME = "https";
 
-    private AlexaLauncher() {
-    }
-
     public static void main(final String[] args) throws Exception {
-        // Configure logging to output to the console with default level of INFO
         BasicConfigurator.configure();
 
-        // Configure server and its associated servlets
         Server server = new Server();
         SslConnectionFactory sslConnectionFactory = new SslConnectionFactory();
         SslContextFactory sslContextFactory = sslConnectionFactory.getSslContextFactory();
@@ -57,7 +50,7 @@ public class AlexaLauncher {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         server.setHandler(context);
-        context.addServlet(new ServletHolder(createServlet(new AlexaBasicTestSpeechlet())), "/hello");
+        context.addServlet(new ServletHolder(createServlet(new SpaceNewsSpeechlet())), "/spacenews");
         server.start();
         server.join();
     }

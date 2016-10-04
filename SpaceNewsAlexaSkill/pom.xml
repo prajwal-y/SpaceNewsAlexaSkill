@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>AlexaSkills</groupId>
-    <artifactId>AlexaSkills</artifactId>
+    <artifactId>SpaceNews</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
-    <name>Alexa Skills</name>
+    <name>Space News Alexa Skill</name>
 
     <dependencies>
 
