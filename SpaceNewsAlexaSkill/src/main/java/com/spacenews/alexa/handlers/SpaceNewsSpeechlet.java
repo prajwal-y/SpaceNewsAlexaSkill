@@ -153,10 +153,8 @@ public class SpaceNewsSpeechlet implements Speechlet {
                     "or say give me space news to start from the beginning again";
         } else {
             speechText = spaceNewsList.get(newsIndex).getLeft();
-            speechText += ". You can now either say next news or ask for more details";
-            if (speechText.length() > SPEECH_TEXT_LEN_LIMIT) {
-                speechText = speechText.substring(0, SPEECH_TEXT_LEN_LIMIT);
-            }
+            speechText += ". You can now either say next news, previous news, or just say \"more details\" " +
+                    "to get more information for the current article.";
         }
         return createSpeechletResponse(speechText, true);
     }
@@ -170,6 +168,9 @@ public class SpaceNewsSpeechlet implements Speechlet {
                     "or say give me space news to start from the beginning again";
         } else {
             speechText = spaceNewsList.get(newsIndex).getRight();
+            if (speechText.length() > SPEECH_TEXT_LEN_LIMIT) {
+                speechText = speechText.substring(0, SPEECH_TEXT_LEN_LIMIT);
+            }
         }
         return createSpeechletResponse(speechText, true);
     }
