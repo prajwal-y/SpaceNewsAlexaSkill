@@ -4,9 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -37,12 +35,16 @@ public class SpaceNewsSpeechlet implements Speechlet {
     private static final String TEMP_FILE_NAME = "tempNewsFile";
     private static final String NEWS_DATA_DELIM = ":delim:";
     private static final String NEWS_S3_BUCKET = "space-news-data";
+    private static final String NEWS_S3_KEY = "space_news_data";
     private static final String NEWS_INDEX = "NewsIndex";
     private static final String FIRST_NEWS_INTENT = "GetFirstNewsIntent";
     private static final String NEXT_NEWS_INTENT = "GetNextNewsIntent";
+    private static final String PREVIOUS_NEWS_INTENT = "GetPreviousNewsIntent";
     private static final String NEWS_DETAILS_INTENT = "GetNewsDetailsIntent";
     private static final String HELP_INTENT = "AMAZON.HelpIntent";
     private static final String STOP_INTENT = "AMAZON.StopIntent";
+
+    private static final int SPEECH_TEXT_LEN_LIMIT = 7999;
 
     private final AmazonS3Client s3Client;
     private final List<Pair<String, String>> spaceNewsList;
@@ -77,7 +79,8 @@ public class SpaceNewsSpeechlet implements Speechlet {
 
         Intent intent = request.getIntent();
         String intentName = (intent != null) ? intent.getName() : null;
-        if (FIRST_NEWS_INTENT.equals(intentName) || NEXT_NEWS_INTENT.equals(intentName)) {
+        if (FIRST_NEWS_INTENT.equals(intentName) || NEXT_NEWS_INTENT.equals(intentName)
+                || PREVIOUS_NEWS_INTENT.equals(intentName)) {
             return getSpaceNewsResponse(intent, session);
         } else if (NEWS_DETAILS_INTENT.equals(intentName)) {
             return getSpaceNewsContentResponse(session);
@@ -86,7 +89,7 @@ public class SpaceNewsSpeechlet implements Speechlet {
         } else if (STOP_INTENT.equals(intentName)) {
             return createSpeechletResponse("Good bye. Have a nice day!", false);
         } else {
-            throw new SpeechletException("Invalid Intent");
+            return getErrorResponse();
         }
     }
 
@@ -100,15 +103,14 @@ public class SpaceNewsSpeechlet implements Speechlet {
     private void fetchAndPopulateNews() throws SpeechletException {
         File tempNewsFile = null;
         try {
-            String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-            GetObjectRequest getObjectRequest = new GetObjectRequest(NEWS_S3_BUCKET, currentDate);
+            GetObjectRequest getObjectRequest = new GetObjectRequest(NEWS_S3_BUCKET, NEWS_S3_KEY);
             tempNewsFile = File.createTempFile(TEMP_FILE_NAME, ".tmp", new File(TEMP_DIRECTORY));
             s3Client.getObject(getObjectRequest, tempNewsFile);
             log.info("S3 fetch was successful");
             readAndPopulateNews(tempNewsFile);
             log.info("News population was successful");
         } catch (AmazonS3Exception | IOException e) {
-            log.error("Exception occurred when fetching news: ", e);
+            log.error("Exception occurred when fetching news with key: ", e);
             throw new SpeechletException(e);
         } finally {
             FileUtils.deleteQuietly(tempNewsFile);
@@ -137,11 +139,13 @@ public class SpaceNewsSpeechlet implements Speechlet {
     }
 
     private SpeechletResponse getSpaceNewsResponse(final Intent intent, final Session session) {
-        int newsIndex = 0;
+        int newsIndex = (int) session.getAttribute(NEWS_INDEX);
         if (NEXT_NEWS_INTENT.equals(intent.getName())) {
-            newsIndex = (int) session.getAttribute(NEWS_INDEX) + 1;
-            session.setAttribute(NEWS_INDEX, newsIndex);
+            newsIndex += 1;
+        } else if (PREVIOUS_NEWS_INTENT.equals(intent.getName()) && newsIndex > 0) {
+            newsIndex -= 1;
         }
+        session.setAttribute(NEWS_INDEX, newsIndex);
         String speechText;
         if (newsIndex >= spaceNewsList.size()) {
             log.info("newsIndex is invalid: " + newsIndex);
@@ -149,7 +153,10 @@ public class SpaceNewsSpeechlet implements Speechlet {
                     "or say give me space news to start from the beginning again";
         } else {
             speechText = spaceNewsList.get(newsIndex).getLeft();
-            speechText += ". You can now either say next news or say details, for more details";
+            speechText += ". You can now either say next news or ask for more details";
+            if (speechText.length() > SPEECH_TEXT_LEN_LIMIT) {
+                speechText = speechText.substring(0, SPEECH_TEXT_LEN_LIMIT);
+            }
         }
         return createSpeechletResponse(speechText, true);
     }
@@ -164,6 +171,12 @@ public class SpaceNewsSpeechlet implements Speechlet {
         } else {
             speechText = spaceNewsList.get(newsIndex).getRight();
         }
+        return createSpeechletResponse(speechText, true);
+    }
+
+    private SpeechletResponse getErrorResponse() {
+        String speechText = "I did not understand what you meant. You can either say next news, or " +
+                "start over by saying, give me space news";
         return createSpeechletResponse(speechText, true);
     }
 

@@ -12,13 +12,16 @@ SPACE_NEWS_DATA_TEMP_FILE = "/tmp/space_news_data.txt"
 SPACE_NEWS_DATA_S3_BUCKET = "space-news-data"
 
 DATA_ENTRY_DELIMITER = ":delim:"
+SPACE_NEWS_DATA_FILE_S3_KEY = "space_news_data"
+
+ARTICLE_LEN_LIMIT = 8000
 
 ARTICLE_LIMIT = 10
 
 def upload_file_to_s3():
 	s3_client = boto3.client('s3')
 	s3_client.upload_file(SPACE_NEWS_DATA_TEMP_FILE, 
-		SPACE_NEWS_DATA_S3_BUCKET, str(datetime.date.today()))
+		SPACE_NEWS_DATA_S3_BUCKET, SPACE_NEWS_DATA_FILE_S3_KEY)
 
 def parse_sitemap_xml_and_fetch_news():
 	file_handler = open(SPACE_NEWS_SITEMAP_TEMP_FILE).read()
@@ -41,7 +44,10 @@ def parse_sitemap_xml_and_fetch_news():
 
 			for p in article_content.findAll('p'):
 				[s.extract() for s in p('script')]
-				article_text += p.get_text().strip().replace('\n', ' ').replace('\r', '') + " "
+				text_entry = p.get_text().strip().replace('\n', ' ').replace('\r', '') + " "
+				if len(article_text) + len(text_entry) >= ARTICLE_LEN_LIMIT:
+					break
+				article_text += text_entry 
 
 			f.write(url.loc.string)
 			f.write(DATA_ENTRY_DELIMITER)
