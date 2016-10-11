@@ -13,7 +13,7 @@ public class SpaceNewsSpeechletHandler extends SpeechletRequestStreamHandler {
          * This Id can be found on https://developer.amazon.com/edw/home.html#/ "Edit" the relevant
          * Alexa Skill and put the relevant Application Ids in this Set.
          */
-        supportedApplicationIds.add("");
+        supportedApplicationIds.add("amzn1.ask.skill.0d97b0a7-38cf-4228-add3-1c023fdfd6f9");
     }
 
     public SpaceNewsSpeechletHandler() {
