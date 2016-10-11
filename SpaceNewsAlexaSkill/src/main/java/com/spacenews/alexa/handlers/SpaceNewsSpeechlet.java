@@ -149,8 +149,8 @@ public class SpaceNewsSpeechlet implements Speechlet {
         String speechText;
         if (newsIndex >= spaceNewsList.size()) {
             log.info("newsIndex is invalid: " + newsIndex);
-            speechText = "That's all the news I have for now. Please check after some time, " +
-                    "or say give me space news to start from the beginning again";
+            speechText = "That's all the news I have for now. Please check after some time. Good bye for now";
+            return createSpeechletResponse(speechText, false);
         } else {
             speechText = spaceNewsList.get(newsIndex).getLeft();
             speechText += ". You can now either say next news, previous news, or just say \"more details\" " +
@@ -164,8 +164,8 @@ public class SpaceNewsSpeechlet implements Speechlet {
         String speechText;
         if (newsIndex >= spaceNewsList.size()) {
             log.info("newsIndex is invalid: " + newsIndex);
-            speechText = "That's all the news I have for now. Please check after some time, " +
-                    "or say give me space news to start from the beginning again";
+            speechText = "That's all the news I have for now. Please check after some time.";
+            return createSpeechletResponse(speechText, false);
         } else {
             speechText = spaceNewsList.get(newsIndex).getRight();
             if (speechText.length() > SPEECH_TEXT_LEN_LIMIT) {
