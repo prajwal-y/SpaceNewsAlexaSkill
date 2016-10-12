@@ -43,6 +43,7 @@ public class SpaceNewsSpeechlet implements Speechlet {
     private static final String NEWS_DETAILS_INTENT = "GetNewsDetailsIntent";
     private static final String HELP_INTENT = "AMAZON.HelpIntent";
     private static final String STOP_INTENT = "AMAZON.StopIntent";
+    private static final String CANCEL_INTENT = "AMAZON.CancelIntent";
 
     private static final int SPEECH_TEXT_LEN_LIMIT = 7999;
 
@@ -86,7 +87,7 @@ public class SpaceNewsSpeechlet implements Speechlet {
             return getSpaceNewsContentResponse(session);
         } else if (HELP_INTENT.equals(intentName)) {
             return getHelpResponse();
-        } else if (STOP_INTENT.equals(intentName)) {
+        } else if (STOP_INTENT.equals(intentName) || CANCEL_INTENT.equals(intentName)) {
             return createSpeechletResponse("Good bye. Have a nice day!", false);
         } else {
             return getErrorResponse();
